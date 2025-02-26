@@ -1,0 +1,255 @@
+# models/user.py
+
+class User:
+    def __init__(self, user_id, name, email):
+        self.user_id = user_id
+        self.name = name
+        self.email = email
+
+    def __str__(self):
+        return f"{self.name} ({self.email})"
+
+
+class Manager(User):
+    def __init__(self, user_id, name, email, permissions):
+        super().__init__(user_id, name, email)
+        self.permissions = permissions  # List of manager permissions
+
+    def __str__(self):
+        return f"Manager: {self.name} ({self.email})"
+
+
+class Employee(User):
+    def __init__(self, user_id, name, email, department):
+        super().__init__(user_id, name, email)
+        self.department = department
+
+    def __str__(self):
+        return f"Employee: {self.name} ({self.email})"
+
+
+# models/vehicle.py
+
+class Vehicle:
+    def __init__(self, vehicle_id, brand, model, year, availability=True):
+        self.vehicle_id = vehicle_id
+        self.brand = brand
+        self.model = model
+        self.year = year
+        self.availability = availability
+
+    def update_availability(self, availability):
+        self.availability = availability
+
+    def __str__(self):
+        return f"{self.year} {self.brand} {self.model} - {'Available' if self.availability else 'Not Available'}"
+
+
+# models/booking.py
+
+class Booking:
+    def __init__(self, booking_id, user, vehicle, start_date, end_date):
+        self.booking_id = booking_id
+        self.user = user
+        self.vehicle = vehicle
+        self.start_date = start_date
+        self.end_date = end_date
+
+    def create_booking(self):
+        # Add booking logic here (e.g., check availability)
+        pass
+
+    def cancel_booking(self):
+        # Cancel booking logic
+        pass
+
+    def __str__(self):
+        return f"Booking ID: {self.booking_id}, {self.user.name} booked {self.vehicle.model} from {self.start_date} to {self.end_date}"
+
+
+# models/payment.py
+
+class Payment:
+    def __init__(self, payment_id, amount, status="Pending"):
+        self.payment_id = payment_id
+        self.amount = amount
+        self.status = status
+
+    def process_payment(self):
+        # Simulate payment processing
+        self.status = "Processed"
+        return f"Payment {self.payment_id} processed for ${self.amount}"
+
+    def __str__(self):
+        return f"Payment ID: {self.payment_id}, Amount: ${self.amount}, Status: {self.status}"
+
+
+# utils/file_handler.py
+
+import json
+
+def load_users(filename="data/users.json"):
+    try:
+        with open(filename, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []  # Return an empty list if the file doesn't exist
+
+def save_users(users, filename="data/users.json"):
+    with open(filename, 'w') as file:
+        json.dump(users, file, indent=4)
+
+def load_vehicles(filename="data/vehicles.json"):
+    try:
+        with open(filename, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+
+def save_vehicles(vehicles, filename="data/vehicles.json"):
+    with open(filename, 'w') as file:
+        json.dump(vehicles, file, indent=4)
+
+def load_bookings(filename="data/bookings.json"):
+    try:
+        with open(filename, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+
+def save_bookings(bookings, filename="data/bookings.json"):
+    with open(filename, 'w') as file:
+        json.dump(bookings, file, indent=4)
+
+def load_payments(filename="data/payments.json"):
+    try:
+        with open(filename, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+
+def save_payments(payments, filename="data/payments.json"):
+    with open(filename, 'w') as file:
+        json.dump(payments, file, indent=4)
+
+
+# ui/menu.py
+
+from models.user import Manager, Employee
+from models.vehicle import Vehicle
+from models.booking import Booking
+from models.payment import Payment
+from utils.file_handler import load_users, save_users, load_vehicles, save_vehicles, load_bookings, save_bookings, load_payments, save_payments
+
+
+def main_menu():
+    users = load_users()
+    vehicles = load_vehicles()
+    bookings = load_bookings()
+    payments = load_payments()
+
+    print("Welcome to the Car Rental System!")
+    
+    # User login or selection
+    user_id = input("Enter your user ID: ")
+    user = next((u for u in users if u['user_id'] == user_id), None)
+    
+    if not user:
+        print("User not found. Please try again.")
+        return
+    
+    print(f"Hello, {user['name']}!")
+
+    if isinstance(user, Manager):
+        print("You are logged in as a Manager.")
+        manager_menu(vehicles, bookings, payments)
+    elif isinstance(user, Employee):
+        print("You are logged in as an Employee.")
+        employee_menu(bookings, payments)
+
+
+def manager_menu(vehicles, bookings, payments):
+    print("\nManager Menu:")
+    print("1. Add Vehicle")
+    print("2. View Bookings")
+    print("3. Process Payments")
+    print("4. Exit")
+    
+    choice = input("Choose an option: ")
+    
+    if choice == "1":
+        add_vehicle(vehicles)
+    elif choice == "2":
+        view_bookings(bookings)
+    elif choice == "3":
+        process_payments(payments)
+    elif choice == "4":
+        print("Exiting...")
+    else:
+        print("Invalid choice. Please try again.")
+
+
+def employee_menu(bookings, payments):
+    print("\nEmployee Menu:")
+    print("1. View Bookings")
+    print("2. Process Payments")
+    print("3. Exit")
+    
+    choice = input("Choose an option: ")
+    
+    if choice == "1":
+        view_bookings(bookings)
+    elif choice == "2":
+        process_payments(payments)
+    elif choice == "3":
+        print("Exiting...")
+    else:
+        print("Invalid choice. Please try again.")
+
+
+def add_vehicle(vehicles):
+    brand = input("Enter vehicle brand: ")
+    model = input("Enter vehicle model: ")
+    year = input("Enter vehicle year: ")
+    vehicle = Vehicle(len(vehicles) + 1, brand, model, int(year))
+    vehicles.append(vehicle.__dict__)
+    save_vehicles(vehicles)
+    print(f"Vehicle {brand} {model} added successfully.")
+
+
+def view_bookings(bookings):
+    if not bookings:
+        print("No bookings available.")
+    for booking in bookings:
+        print(f"Booking ID: {booking['booking_id']}, Vehicle: {booking['vehicle']}, User: {booking['user']}, Dates: {booking['start_date']} to {booking['end_date']}")
+
+
+def process_payments(payments):
+    if not payments:
+        print("No payments to process.")
+    for payment in payments:
+        print(f"Payment ID: {payment['payment_id']}, Amount: {payment['amount']}, Status: {payment['status']}")
+
+
+# test_file_handling.py
+
+from utils.file_handler import load_users, save_users, load_vehicles, save_vehicles, load_bookings, save_bookings, load_payments, save_payments
+from models.user import Manager, Employee
+from models.vehicle import Vehicle
+from models.booking import Booking
+from models.payment import Payment
+
+def test_file_handling():
+    # Clear files for fresh test data (optional)
+    save_users([])
+    save_vehicles([])
+    save_bookings([])
+    save_payments([])
+
+    # Test saving and loading users
+    users = [
+        Manager("1", "Alice", "alice@example.com", ["add_vehicle", "view_bookings"]),
+        Employee("2", "Bob", "bob@example.com", "Sales")
+    ]
+    save_users(users)
+    loaded_users 
